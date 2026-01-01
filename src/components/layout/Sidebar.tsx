@@ -19,10 +19,10 @@ interface SidebarProps {
 
 const mainNavItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/transactions", icon: Wallet, label: "Transações" },
-  { to: "/investments", icon: TrendingUp, label: "Investimentos" },
+  { to: "/credit-cards", icon: Wallet, label: "Cartões de Crédito" },
+  { to: "/fixed-expenses", icon: Target, label: "Gastos Fixos" },
+  { to: "/financings", icon: TrendingUp, label: "Financiamentos" },
   { to: "/reports", icon: PieChart, label: "Relatórios" },
-  { to: "/goals", icon: Target, label: "Metas" },
 ];
 
 const secondaryNavItems = [
