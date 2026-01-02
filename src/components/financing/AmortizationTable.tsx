@@ -2,14 +2,6 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Financing } from "@/types/finance";
 import { ChevronDown, ChevronUp, TableIcon } from "lucide-react";
 
@@ -56,15 +48,15 @@ export function AmortizationTable({ financing }: AmortizationTableProps) {
     return rows;
   }, [financing]);
 
-  const displayData = showAll ? tableData : tableData.slice(0, 12);
+  const displayData = showAll ? tableData : tableData.slice(0, 6);
   const totalInterest = tableData.reduce((acc, row) => acc + row.interest, 0);
   const totalPaid = financing.monthlyPayment * financing.totalInstallments;
 
   return (
     <Card variant="glass">
-      <CardHeader className="pb-2">
+      <CardHeader className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="text-sm flex items-center gap-2">
             <TableIcon className="h-4 w-4 text-primary" />
             Tabela de Amortização
           </CardTitle>
@@ -72,86 +64,80 @@ export function AmortizationTable({ financing }: AmortizationTableProps) {
             variant="ghost"
             size="sm"
             onClick={() => setShowTable(!showTable)}
-            className="gap-1"
+            className="gap-1 h-8 text-xs"
           >
             {showTable ? (
-              <>
-                Ocultar <ChevronUp className="h-4 w-4" />
-              </>
+              <>Ocultar <ChevronUp className="h-4 w-4" /></>
             ) : (
-              <>
-                Expandir <ChevronDown className="h-4 w-4" />
-              </>
+              <>Ver <ChevronDown className="h-4 w-4" /></>
             )}
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-4 pb-4 space-y-3">
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="p-3 rounded-lg bg-muted/30 text-center">
-            <p className="text-xs text-muted-foreground">Total Pago</p>
-            <p className="font-semibold text-sm">{formatCurrency(totalPaid)}</p>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-2.5 rounded-lg bg-muted/30 text-center">
+            <p className="text-[10px] text-muted-foreground">Total Pago</p>
+            <p className="font-semibold text-xs">{formatCurrency(totalPaid)}</p>
           </div>
-          <div className="p-3 rounded-lg bg-destructive/10 text-center">
-            <p className="text-xs text-muted-foreground">Total Juros</p>
-            <p className="font-semibold text-sm text-destructive">{formatCurrency(totalInterest)}</p>
+          <div className="p-2.5 rounded-lg bg-destructive/10 text-center">
+            <p className="text-[10px] text-muted-foreground">Total Juros</p>
+            <p className="font-semibold text-xs text-destructive">{formatCurrency(totalInterest)}</p>
           </div>
-          <div className="p-3 rounded-lg bg-primary/10 text-center">
-            <p className="text-xs text-muted-foreground">Custo Efetivo</p>
-            <p className="font-semibold text-sm text-primary">
+          <div className="p-2.5 rounded-lg bg-primary/10 text-center">
+            <p className="text-[10px] text-muted-foreground">Custo</p>
+            <p className="font-semibold text-xs text-primary">
               {((totalInterest / financing.totalAmount) * 100).toFixed(1)}%
             </p>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Mobile Table */}
         {showTable && (
-          <div className="animate-fade-in overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Nº</TableHead>
-                  <TableHead>Parcela</TableHead>
-                  <TableHead>Amortização</TableHead>
-                  <TableHead>Juros</TableHead>
-                  <TableHead>Saldo</TableHead>
-                  <TableHead className="w-20">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayData.map((row) => (
-                  <TableRow
-                    key={row.installment}
-                    className={row.isPaid ? "opacity-60" : ""}
-                  >
-                    <TableCell className="font-medium">{row.installment}</TableCell>
-                    <TableCell>{formatCurrency(row.payment)}</TableCell>
-                    <TableCell className="text-success">{formatCurrency(row.principal)}</TableCell>
-                    <TableCell className="text-destructive">{formatCurrency(row.interest)}</TableCell>
-                    <TableCell>{formatCurrency(row.balance)}</TableCell>
-                    <TableCell>
-                      {row.isPaid ? (
-                        <Badge variant="secondary" className="text-xs">Paga</Badge>
-                      ) : row.installment === financing.paidInstallments + 1 ? (
-                        <Badge className="text-xs bg-warning text-warning-foreground">Atual</Badge>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            
-            {tableData.length > 12 && (
-              <div className="flex justify-center pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAll(!showAll)}
-                >
-                  {showAll ? "Mostrar menos" : `Ver todas as ${tableData.length} parcelas`}
-                </Button>
+          <div className="animate-fade-in space-y-2">
+            {displayData.map((row) => (
+              <div
+                key={row.installment}
+                className={`p-3 rounded-xl bg-muted/30 ${row.isPaid ? "opacity-50" : ""}`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">#{row.installment}</span>
+                    {row.isPaid ? (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Paga</Badge>
+                    ) : row.installment === financing.paidInstallments + 1 ? (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-warning text-warning-foreground">Atual</Badge>
+                    ) : null}
+                  </div>
+                  <span className="font-semibold">{formatCurrency(row.payment)}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">Amortização</p>
+                    <p className="font-medium text-success">{formatCurrency(row.principal)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Juros</p>
+                    <p className="font-medium text-destructive">{formatCurrency(row.interest)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Saldo</p>
+                    <p className="font-medium">{formatCurrency(row.balance)}</p>
+                  </div>
+                </div>
               </div>
+            ))}
+            
+            {tableData.length > 6 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAll(!showAll)}
+                className="w-full h-10"
+              >
+                {showAll ? "Mostrar menos" : `Ver todas as ${tableData.length} parcelas`}
+              </Button>
             )}
           </div>
         )}

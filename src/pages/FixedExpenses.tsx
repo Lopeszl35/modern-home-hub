@@ -53,79 +53,110 @@ export default function FixedExpenses() {
   const today = new Date().getDate();
   const upcomingExpenses = activeExpenses.filter((e) => e.dueDay >= today && e.dueDay <= today + 7);
 
+  const categoryLabels: Record<string, string> = {
+    utilities: "Utilidades",
+    subscriptions: "Assinaturas",
+    health: "Saúde",
+    education: "Educação",
+    housing: "Moradia",
+    other: "Outros",
+  };
+
   const categoryTotals = activeExpenses.reduce((acc, exp) => {
     acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
     return acc;
   }, {} as Record<string, number>);
 
   return (
-    <DashboardLayout title="Gastos Fixos" subtitle="Gerencie suas despesas recorrentes mensais">
-      <div className="space-y-6">
-        <div className="flex justify-end">
-          <AddFixedExpenseModal onAdd={handleAddExpense} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card variant="gradient" className="animate-fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <span className="text-muted-foreground">Total Mensal</span>
+    <DashboardLayout title="Gastos Fixos" subtitle="Despesas recorrentes">
+      <div className="space-y-4 pb-24">
+        {/* Stats Cards - Horizontal Scroll on Mobile */}
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+          <Card variant="gradient" className="min-w-[160px] snap-start shrink-0 animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span className="text-xs text-muted-foreground">Total Mensal</span>
               </div>
-              <p className="text-3xl font-bold">{formatCurrency(totalMonthly)}</p>
-              <p className="text-sm text-muted-foreground mt-1">{activeExpenses.length} despesas ativas</p>
+              <p className="text-xl font-bold">{formatCurrency(totalMonthly)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{activeExpenses.length} ativas</p>
             </CardContent>
           </Card>
 
-          <Card variant="glass" className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <Calendar className="h-5 w-5 text-warning" />
-                <span className="text-muted-foreground">Total Anual</span>
+          <Card variant="glass" className="min-w-[160px] snap-start shrink-0 animate-fade-in" style={{ animationDelay: "50ms" }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-warning" />
+                <span className="text-xs text-muted-foreground">Total Anual</span>
               </div>
-              <p className="text-3xl font-bold">{formatCurrency(totalAnnual)}</p>
-              <p className="text-sm text-muted-foreground mt-1">Projeção para 12 meses</p>
+              <p className="text-xl font-bold">{formatCurrency(totalAnnual)}</p>
+              <p className="text-xs text-muted-foreground mt-1">12 meses</p>
             </CardContent>
           </Card>
 
-          <Card variant="glass" className="animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <AlertCircle className="h-5 w-5 text-destructive" />
-                <span className="text-muted-foreground">Próximos 7 dias</span>
+          <Card variant="glass" className="min-w-[160px] snap-start shrink-0 animate-fade-in" style={{ animationDelay: "100ms" }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <span className="text-xs text-muted-foreground">Em 7 dias</span>
               </div>
-              <p className="text-3xl font-bold">{formatCurrency(upcomingExpenses.reduce((acc, e) => acc + e.amount, 0))}</p>
-              <p className="text-sm text-muted-foreground mt-1">{upcomingExpenses.length} vencimentos</p>
+              <p className="text-xl font-bold">{formatCurrency(upcomingExpenses.reduce((acc, e) => acc + e.amount, 0))}</p>
+              <p className="text-xs text-muted-foreground mt-1">{upcomingExpenses.length} vencimentos</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Category Summary */}
         <Card variant="glass">
-          <CardHeader><CardTitle>Gastos por Categoria</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <CardHeader className="pb-2 px-4 pt-4">
+            <CardTitle className="text-sm">Por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="grid grid-cols-2 gap-2">
               {Object.entries(categoryTotals).map(([category, total]) => (
                 <div key={category} className="text-center p-3 rounded-xl bg-muted/30">
-                  <p className="text-sm text-muted-foreground capitalize mb-1">
-                    {category === "utilities" ? "Utilidades" : category === "subscriptions" ? "Assinaturas" : category === "health" ? "Saúde" : category === "education" ? "Educação" : category === "housing" ? "Moradia" : "Outros"}
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {categoryLabels[category] || category}
                   </p>
-                  <p className="text-lg font-bold">{formatCurrency(total)}</p>
+                  <p className="text-sm font-bold">{formatCurrency(total)}</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Expenses List */}
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold">Todas as Despesas</h2>
           {expenses.map((expense, index) => (
-            <div key={expense.id} className="animate-fade-in cursor-pointer" style={{ animationDelay: `${index * 50}ms` }} onClick={() => setEditingExpense(expense)}>
-              <FixedExpenseCard expense={expense} onToggle={handleToggle} onDelete={handleDelete} />
+            <div 
+              key={expense.id} 
+              className="animate-fade-in" 
+              style={{ animationDelay: `${index * 30}ms` }} 
+              onClick={() => setEditingExpense(expense)}
+            >
+              <FixedExpenseCard 
+                expense={expense} 
+                onToggle={handleToggle} 
+                onDelete={handleDelete} 
+              />
             </div>
           ))}
         </div>
 
-        <EditFixedExpenseModal expense={editingExpense} open={!!editingExpense} onOpenChange={(open) => !open && setEditingExpense(null)} onSave={handleEditExpense} />
+        {/* Floating Add Button */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <AddFixedExpenseModal onAdd={handleAddExpense} />
+        </div>
       </div>
+
+      {/* Edit Modal */}
+      <EditFixedExpenseModal 
+        expense={editingExpense} 
+        open={!!editingExpense} 
+        onOpenChange={(open) => !open && setEditingExpense(null)} 
+        onSave={handleEditExpense} 
+      />
     </DashboardLayout>
   );
 }
