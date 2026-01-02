@@ -6,8 +6,9 @@ import { AmortizationCalculator } from "@/components/financing/AmortizationCalcu
 import { AmortizationTable } from "@/components/financing/AmortizationTable";
 import { EditFinancingModal } from "@/components/financing/EditFinancingModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Financing } from "@/types/finance";
-import { TrendingUp, Wallet, Calendar, Percent } from "lucide-react";
+import { TrendingUp, Wallet, Calendar, Percent, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const mockFinancings: Financing[] = [
@@ -18,7 +19,7 @@ const mockFinancings: Financing[] = [
 
 export default function Financings() {
   const [financings, setFinancings] = useState<Financing[]>(mockFinancings);
-  const [selectedId, setSelectedId] = useState<string | null>(mockFinancings[0]?.id || null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingFinancing, setEditingFinancing] = useState<Financing | null>(null);
 
   const selectedFinancing = financings.find((f) => f.id === selectedId);
@@ -37,40 +38,143 @@ export default function Financings() {
 
   const totalDebt = financings.reduce((acc, f) => acc + f.remainingAmount, 0);
   const totalMonthlyPayment = financings.reduce((acc, f) => acc + f.monthlyPayment, 0);
-  const averageRate = financings.reduce((acc, f) => acc + f.interestRate, 0) / financings.length;
+  const averageRate = financings.length > 0 ? financings.reduce((acc, f) => acc + f.interestRate, 0) / financings.length : 0;
   const weightedMonths = financings.reduce((acc, f) => acc + ((f.totalInstallments - f.paidInstallments) * f.remainingAmount), 0);
-  const avgRemainingMonths = Math.round(weightedMonths / totalDebt);
+  const avgRemainingMonths = totalDebt > 0 ? Math.round(weightedMonths / totalDebt) : 0;
 
+  // Detail View
+  if (selectedFinancing) {
+    return (
+      <DashboardLayout title={selectedFinancing.name} subtitle={selectedFinancing.bank}>
+        <div className="space-y-4 pb-24">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 -ml-2"
+            onClick={() => setSelectedId(null)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+
+          {/* Financing Card */}
+          <FinancingCard
+            financing={selectedFinancing}
+            isSelected={true}
+            onClick={() => setEditingFinancing(selectedFinancing)}
+          />
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card variant="glass">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground">Parcela Mensal</p>
+                <p className="text-lg font-bold">{formatCurrency(selectedFinancing.monthlyPayment)}</p>
+              </CardContent>
+            </Card>
+            <Card variant="glass">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground">Parcelas Restantes</p>
+                <p className="text-lg font-bold">{selectedFinancing.totalInstallments - selectedFinancing.paidInstallments}x</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Amortization Calculator */}
+          <AmortizationCalculator financing={selectedFinancing} />
+
+          {/* Amortization Table */}
+          <AmortizationTable financing={selectedFinancing} />
+        </div>
+
+        <EditFinancingModal 
+          financing={editingFinancing} 
+          open={!!editingFinancing} 
+          onOpenChange={(open) => !open && setEditingFinancing(null)} 
+          onSave={handleEditFinancing} 
+        />
+      </DashboardLayout>
+    );
+  }
+
+  // List View
   return (
-    <DashboardLayout title="Financiamentos" subtitle="Acompanhe seus financiamentos e calcule amortizações">
-      <div className="space-y-6">
-        <div className="flex justify-end"><AddFinancingModal onAdd={handleAddFinancing} /></div>
+    <DashboardLayout title="Financiamentos" subtitle="Acompanhe seus financiamentos">
+      <div className="space-y-4 pb-24">
+        {/* Stats Cards - Horizontal Scroll */}
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+          <Card variant="gradient" className="min-w-[150px] snap-start shrink-0 animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet className="h-4 w-4 text-primary" />
+                <span className="text-xs text-muted-foreground">Dívida Total</span>
+              </div>
+              <p className="text-lg font-bold">{formatCurrency(totalDebt)}</p>
+            </CardContent>
+          </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card variant="gradient" className="animate-fade-in"><CardContent className="p-5"><div className="flex items-center gap-2 mb-2"><Wallet className="h-4 w-4 text-primary" /><span className="text-sm text-muted-foreground">Dívida Total</span></div><p className="text-2xl font-bold">{formatCurrency(totalDebt)}</p></CardContent></Card>
-          <Card variant="glass" className="animate-fade-in" style={{ animationDelay: "50ms" }}><CardContent className="p-5"><div className="flex items-center gap-2 mb-2"><TrendingUp className="h-4 w-4 text-warning" /><span className="text-sm text-muted-foreground">Parcelas Mensais</span></div><p className="text-2xl font-bold">{formatCurrency(totalMonthlyPayment)}</p></CardContent></Card>
-          <Card variant="glass" className="animate-fade-in" style={{ animationDelay: "100ms" }}><CardContent className="p-5"><div className="flex items-center gap-2 mb-2"><Percent className="h-4 w-4 text-destructive" /><span className="text-sm text-muted-foreground">Taxa Média</span></div><p className="text-2xl font-bold">{averageRate.toFixed(2)}% a.m.</p></CardContent></Card>
-          <Card variant="glass" className="animate-fade-in" style={{ animationDelay: "150ms" }}><CardContent className="p-5"><div className="flex items-center gap-2 mb-2"><Calendar className="h-4 w-4 text-success" /><span className="text-sm text-muted-foreground">Meses Restantes</span></div><p className="text-2xl font-bold">~{avgRemainingMonths} meses</p></CardContent></Card>
+          <Card variant="glass" className="min-w-[150px] snap-start shrink-0 animate-fade-in" style={{ animationDelay: "50ms" }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-warning" />
+                <span className="text-xs text-muted-foreground">Mensais</span>
+              </div>
+              <p className="text-lg font-bold">{formatCurrency(totalMonthlyPayment)}</p>
+            </CardContent>
+          </Card>
+
+          <Card variant="glass" className="min-w-[150px] snap-start shrink-0 animate-fade-in" style={{ animationDelay: "100ms" }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Percent className="h-4 w-4 text-destructive" />
+                <span className="text-xs text-muted-foreground">Taxa Média</span>
+              </div>
+              <p className="text-lg font-bold">{averageRate.toFixed(2)}%</p>
+            </CardContent>
+          </Card>
+
+          <Card variant="glass" className="min-w-[150px] snap-start shrink-0 animate-fade-in" style={{ animationDelay: "150ms" }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-success" />
+                <span className="text-xs text-muted-foreground">Meses</span>
+              </div>
+              <p className="text-lg font-bold">~{avgRemainingMonths}</p>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-lg font-semibold">Seus Financiamentos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {financings.map((financing, index) => (
-                <div key={financing.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }} onDoubleClick={() => setEditingFinancing(financing)}>
-                  <FinancingCard financing={financing} isSelected={financing.id === selectedId} onClick={() => setSelectedId(financing.id)} />
-                </div>
-              ))}
+        {/* Financings List */}
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold">Seus Financiamentos</h2>
+          {financings.map((financing, index) => (
+            <div 
+              key={financing.id} 
+              className="animate-fade-in" 
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <FinancingCard 
+                financing={financing} 
+                isSelected={false} 
+                onClick={() => setSelectedId(financing.id)} 
+              />
             </div>
-          </div>
-          <div className="space-y-4">
-            {selectedFinancing ? <><AmortizationCalculator financing={selectedFinancing} /><AmortizationTable financing={selectedFinancing} /></> : <Card variant="glass"><CardHeader><CardTitle>Calculadora de Amortização</CardTitle></CardHeader><CardContent><p className="text-muted-foreground text-center py-8">Selecione um financiamento</p></CardContent></Card>}
-          </div>
+          ))}
         </div>
 
-        <EditFinancingModal financing={editingFinancing} open={!!editingFinancing} onOpenChange={(open) => !open && setEditingFinancing(null)} onSave={handleEditFinancing} />
+        {/* Floating Add Button */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <AddFinancingModal onAdd={handleAddFinancing} />
+        </div>
       </div>
+
+      <EditFinancingModal 
+        financing={editingFinancing} 
+        open={!!editingFinancing} 
+        onOpenChange={(open) => !open && setEditingFinancing(null)} 
+        onSave={handleEditFinancing} 
+      />
     </DashboardLayout>
   );
 }

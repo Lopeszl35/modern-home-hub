@@ -2,7 +2,7 @@ import { CardExpense } from "@/types/finance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, Utensils, Car, Plane, Gamepad2, Heart, GraduationCap, MoreHorizontal } from "lucide-react";
+import { ShoppingBag, Utensils, Car, Plane, Gamepad2, Heart, GraduationCap, MoreHorizontal, Receipt } from "lucide-react";
 
 interface CardExpensesListProps {
   expenses: CardExpense[];
@@ -44,16 +44,21 @@ export function CardExpensesList({ expenses, selectedMonth }: CardExpensesListPr
 
   return (
     <Card variant="glass" className="animate-fade-in">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Gastos de {selectedMonth}</CardTitle>
-        <Badge variant="secondary" className="text-base font-semibold">
-          {formatCurrency(totalMonth)}
-        </Badge>
+      <CardHeader className="px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-primary" />
+            {selectedMonth}
+          </CardTitle>
+          <Badge variant="secondary" className="text-sm font-semibold">
+            {formatCurrency(totalMonth)}
+          </Badge>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="px-4 pb-4 space-y-2">
         {expenses.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Nenhum gasto registrado neste mês
+          <p className="text-center text-muted-foreground py-6 text-sm">
+            Nenhum gasto registrado
           </p>
         ) : (
           expenses.map((expense, index) => {
@@ -62,36 +67,29 @@ export function CardExpensesList({ expenses, selectedMonth }: CardExpensesListPr
               <div
                 key={expense.id}
                 className={cn(
-                  "flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all",
-                  "animate-slide-in-left"
+                  "flex items-center gap-3 p-3 rounded-xl bg-muted/30 active:bg-muted/50 transition-all"
                 )}
-                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className={cn("p-2 rounded-lg", categoryColors[expense.category])}>
-                  <Icon className="h-5 w-5" />
+                <div className={cn("p-2 rounded-lg shrink-0", categoryColors[expense.category])}>
+                  <Icon className="h-4 w-4" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{expense.description}</p>
+                  <p className="font-medium text-sm truncate">{expense.description}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatDate(expense.date)}</span>
                     {expense.isInstallment && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                         {expense.currentInstallment}/{expense.totalInstallments}
                       </Badge>
                     )}
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <p className="font-semibold text-destructive">
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-sm text-destructive">
                     {formatCurrency(expense.amount)}
                   </p>
-                  {expense.isInstallment && expense.totalInstallments && expense.currentInstallment && (
-                    <p className="text-xs text-muted-foreground">
-                      Restam {expense.totalInstallments - expense.currentInstallment}x
-                    </p>
-                  )}
                 </div>
               </div>
             );

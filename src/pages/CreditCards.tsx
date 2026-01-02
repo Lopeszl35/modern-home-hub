@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CreditCard, CardExpense } from "@/types/finance";
-import { Calendar, TrendingDown, Wallet, Edit2, Trash2, PieChart } from "lucide-react";
+import { Calendar, TrendingDown, Wallet, Edit2, Trash2, PieChart, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock data
@@ -50,7 +50,7 @@ const months = [
 export default function CreditCards() {
   const [cards, setCards] = useState<CreditCard[]>(mockCards);
   const [expenses, setExpenses] = useState<CardExpense[]>(mockExpenses);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(mockCards[0]?.id || null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState("2026-01");
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function CreditCards() {
       setCards(cards.filter((c) => c.id !== deleteCardId));
       setExpenses(expenses.filter((e) => e.cardId !== deleteCardId));
       if (selectedCardId === deleteCardId) {
-        setSelectedCardId(cards.find((c) => c.id !== deleteCardId)?.id || null);
+        setSelectedCardId(null);
       }
       setDeleteCardId(null);
       toast.success("Cartão excluído com sucesso!");
@@ -92,7 +92,6 @@ export default function CreditCards() {
     };
     setExpenses([...expenses, newExpense]);
     
-    // Atualiza o limite usado do cartão
     setCards(cards.map((c) => 
       c.id === expenseData.cardId 
         ? { ...c, usedLimit: c.usedLimit + expenseData.amount }
@@ -104,19 +103,57 @@ export default function CreditCards() {
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  // Calcular estatísticas por categoria
   const categoryStats = cardExpenses.reduce((acc, exp) => {
     acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
     return acc;
   }, {} as Record<string, number>);
 
-  return (
-    <DashboardLayout title="Cartões de Crédito" subtitle="Gerencie seus cartões e acompanhe seus gastos">
-      <div className="space-y-6">
-        {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+  // Mobile: Detail View
+  if (selectedCard) {
+    return (
+      <DashboardLayout title={selectedCard.name} subtitle="Detalhes do cartão">
+        <div className="space-y-4 pb-24">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 -ml-2"
+            onClick={() => setSelectedCardId(null)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+
+          {/* Card Preview */}
+          <div className="relative">
+            <CreditCardItem
+              card={selectedCard}
+              isSelected={true}
+              onClick={() => {}}
+            />
+            <div className="absolute top-3 right-3 flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 bg-white/20 hover:bg-white/30 text-white"
+                onClick={() => setEditingCard(selectedCard)}
+              >
+                <Edit2 className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 bg-white/20 hover:bg-red-500/80 text-white"
+                onClick={() => setDeleteCardId(selectedCard.id)}
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Month Selector */}
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full h-12">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -128,168 +165,116 @@ export default function CreditCards() {
               ))}
             </SelectContent>
           </Select>
-          <div className="flex gap-2">
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card variant="glass">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground">Limite Usado</p>
+                <p className="text-lg font-bold text-destructive">{formatCurrency(selectedCard.usedLimit)}</p>
+              </CardContent>
+            </Card>
+            <Card variant="glass">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground">Disponível</p>
+                <p className="text-lg font-bold text-success">{formatCurrency(selectedCard.limit - selectedCard.usedLimit)}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Card Summary */}
+          <Card variant="glass">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-primary" />
+                Resumo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Limite Total</span>
+                <span className="font-semibold">{formatCurrency(selectedCard.limit)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Fechamento</span>
+                <span className="font-medium">Dia {selectedCard.closingDay}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Vencimento</span>
+                <span className="font-medium">Dia {selectedCard.dueDay}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Stats */}
+          {Object.keys(categoryStats).length > 0 && (
+            <Card variant="glass">
+              <CardHeader className="pb-2 px-4 pt-4">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <PieChart className="h-4 w-4 text-warning" />
+                  Por Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 space-y-2">
+                {Object.entries(categoryStats)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([category, total]) => (
+                    <div key={category} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                      <span className="text-sm capitalize">{category}</span>
+                      <span className="text-sm font-semibold">{formatCurrency(total)}</span>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Installments */}
+          {installmentExpenses.length > 0 && (
+            <Card variant="glass">
+              <CardHeader className="pb-2 px-4 pt-4">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4 text-warning" />
+                  Parcelas Ativas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 space-y-2">
+                {installmentExpenses.map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{expense.description}</p>
+                      <Badge variant="outline" className="text-xs mt-1">
+                        {expense.currentInstallment}/{expense.totalInstallments}
+                      </Badge>
+                    </div>
+                    <div className="text-right ml-3">
+                      <p className="text-sm font-semibold">{formatCurrency(expense.amount)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Restam {(expense.totalInstallments || 0) - (expense.currentInstallment || 0)}x
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Expenses List */}
+          <CardExpensesList
+            expenses={cardExpenses}
+            selectedMonth={months.find((m) => m.value === selectedMonth)?.label || selectedMonth}
+          />
+
+          {/* Floating Add Button */}
+          <div className="fixed bottom-6 right-6 z-50">
             <AddExpenseModal 
               cards={cards} 
               selectedCardId={selectedCardId}
               onAdd={handleAddExpense} 
             />
-            <AddCardModal onAdd={handleAddCard} />
           </div>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cards.map((card, index) => (
-            <div 
-              key={card.id} 
-              className="relative group animate-fade-in"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <CreditCardItem
-                card={card}
-                isSelected={card.id === selectedCardId}
-                onClick={() => setSelectedCardId(card.id)}
-              />
-              {/* Card Actions */}
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 bg-white/20 hover:bg-white/30 text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingCard(card);
-                  }}
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 bg-white/20 hover:bg-red-500/80 text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteCardId(card.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Selected Card Details */}
-        {selectedCard && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Card Stats */}
-            <div className="lg:col-span-1 space-y-4">
-              <Card variant="glass">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-primary" />
-                    Resumo do Cartão
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Limite Total</span>
-                    <span className="font-semibold">{formatCurrency(selectedCard.limit)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Limite Usado</span>
-                    <span className="font-semibold text-destructive">{formatCurrency(selectedCard.usedLimit)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Limite Disponível</span>
-                    <span className="font-semibold text-success">{formatCurrency(selectedCard.limit - selectedCard.usedLimit)}</span>
-                  </div>
-                  <div className="border-t border-border pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Fechamento</span>
-                      <span>Dia {selectedCard.closingDay}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Vencimento</span>
-                      <span>Dia {selectedCard.dueDay}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Gastos por Categoria */}
-              <Card variant="glass">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <PieChart className="h-4 w-4 text-warning" />
-                    Por Categoria
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {Object.entries(categoryStats).length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhum gasto registrado
-                    </p>
-                  ) : (
-                    Object.entries(categoryStats)
-                      .sort((a, b) => b[1] - a[1])
-                      .map(([category, total]) => (
-                        <div key={category} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                          <span className="text-sm capitalize">{category}</span>
-                          <span className="text-sm font-semibold">{formatCurrency(total)}</span>
-                        </div>
-                      ))
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Installments Summary */}
-              <Card variant="glass">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingDown className="h-4 w-4 text-warning" />
-                    Parcelas Ativas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {installmentExpenses.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhuma parcela ativa
-                    </p>
-                  ) : (
-                    installmentExpenses.map((expense) => (
-                      <div key={expense.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                        <div>
-                          <p className="text-sm font-medium truncate max-w-32">{expense.description}</p>
-                          <Badge variant="outline" className="text-xs mt-1">
-                            {expense.currentInstallment}/{expense.totalInstallments}
-                          </Badge>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold">{formatCurrency(expense.amount)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Restam {(expense.totalInstallments || 0) - (expense.currentInstallment || 0)}x
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Expenses List */}
-            <div className="lg:col-span-2">
-              <CardExpensesList
-                expenses={cardExpenses}
-                selectedMonth={months.find((m) => m.value === selectedMonth)?.label || selectedMonth}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Edit Card Modal */}
+        {/* Modals */}
         <EditCardModal
           card={editingCard}
           open={!!editingCard}
@@ -297,23 +282,68 @@ export default function CreditCards() {
           onSave={handleEditCard}
         />
 
-        {/* Delete Confirmation Dialog */}
         <AlertDialog open={!!deleteCardId} onOpenChange={(open) => !open && setDeleteCardId(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="mx-4 max-w-sm">
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir Cartão</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir este cartão? Todos os gastos associados também serão removidos. Esta ação não pode ser desfeita.
+                Tem certeza que deseja excluir este cartão? Todos os gastos associados também serão removidos.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteCard} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+              <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteCard} className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </DashboardLayout>
+    );
+  }
+
+  // Mobile: Card List View
+  return (
+    <DashboardLayout title="Cartões de Crédito" subtitle="Gerencie seus cartões">
+      <div className="space-y-4 pb-24">
+        {/* Header Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card variant="gradient">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">Total Limite</p>
+              <p className="text-lg font-bold">{formatCurrency(cards.reduce((acc, c) => acc + c.limit, 0))}</p>
+            </CardContent>
+          </Card>
+          <Card variant="glass">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">Total Usado</p>
+              <p className="text-lg font-bold text-destructive">{formatCurrency(cards.reduce((acc, c) => acc + c.usedLimit, 0))}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cards List */}
+        <div className="space-y-4">
+          <h2 className="text-base font-semibold">Seus Cartões</h2>
+          {cards.map((card, index) => (
+            <div 
+              key={card.id} 
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <CreditCardItem
+                card={card}
+                isSelected={false}
+                onClick={() => setSelectedCardId(card.id)}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Floating Add Button */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <AddCardModal onAdd={handleAddCard} />
+        </div>
       </div>
     </DashboardLayout>
   );
