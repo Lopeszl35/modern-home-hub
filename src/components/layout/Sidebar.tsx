@@ -9,6 +9,7 @@ import {
   Settings,
   HelpCircle,
   X,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const mainNavItems = [
   { to: "/credit-cards", icon: Wallet, label: "Cartões de Crédito" },
   { to: "/fixed-expenses", icon: Target, label: "Gastos Fixos" },
   { to: "/financings", icon: TrendingUp, label: "Financiamentos" },
+  { to: "/assistente-ia", icon: Bot, label: "Assistente IA" },
   { to: "/reports", icon: PieChart, label: "Relatórios" },
 ];
 
