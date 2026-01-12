@@ -32,7 +32,7 @@ const mockRespostas = [
   'Notei que você tem 3 assinaturas de streaming. Talvez valha revisar se todas estão sendo utilizadas.',
 ];
 
-export async function getHistoricoChatIA(id_usuario: string): Promise<MensagemChat[]> {
+export async function getHistoricoChatIA(id_usuario: number): Promise<MensagemChat[]> {
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
       setTimeout(() => resolve([...mockHistorico]), 500);
@@ -56,7 +56,7 @@ export async function getHistoricoChatIA(id_usuario: string): Promise<MensagemCh
 }
 
 export async function enviarMensagemChatIA(
-  id_usuario: string,
+  id_usuario: number,
   mensagem: string
 ): Promise<EnviarMensagemResponse> {
   if (USE_MOCK_DATA) {

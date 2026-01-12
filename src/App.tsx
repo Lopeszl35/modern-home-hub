@@ -10,6 +10,7 @@ import CreditCards from "./pages/CreditCards";
 import FixedExpenses from "./pages/FixedExpenses";
 import Financings from "./pages/Financings";
 import AssistenteIA from "./pages/AssistenteIA";
+import GastosVariaveis from "./pages/GastosVariaveis";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/credit-cards" element={<CreditCards />} />
             <Route path="/fixed-expenses" element={<FixedExpenses />} />
             <Route path="/financings" element={<Financings />} />
+            <Route path="/gastos-variaveis" element={<GastosVariaveis />} />
             <Route path="/assistente-ia" element={<AssistenteIA />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
