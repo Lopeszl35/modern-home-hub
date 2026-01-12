@@ -1,6 +1,7 @@
 // API Service base para todas as requisições
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+import { API_URL } from '@/constants/ApiUrl';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || API_URL;
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 interface FetchOptions extends RequestInit {
