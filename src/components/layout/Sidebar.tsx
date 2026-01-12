@@ -21,6 +21,7 @@ interface SidebarProps {
 const mainNavItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/credit-cards", icon: Wallet, label: "Cartões de Crédito" },
+  { to: "/gastos-variaveis", icon: TrendingUp, label: "Gastos Variáveis" },
   { to: "/fixed-expenses", icon: Target, label: "Gastos Fixos" },
   { to: "/financings", icon: TrendingUp, label: "Financiamentos" },
   { to: "/assistente-ia", icon: Bot, label: "Assistente IA" },

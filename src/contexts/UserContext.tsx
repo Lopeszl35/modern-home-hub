@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
-  id_usuario: string;
+  id_usuario: number;
   nome: string;
   email: string;
 }
@@ -17,7 +17,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Mock user para desenvolvimento
 const MOCK_USER: User = {
-  id_usuario: 'user-123',
+  id_usuario: 1,
   nome: 'Usuário Teste',
   email: 'usuario@teste.com',
 };
