@@ -16,6 +16,8 @@ import GastosVariaveis from "./pages/GastosVariaveis";
 import Receitas from "./pages/Receitas";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ const App = () => {
               <Route path="/financings" element={<Financings />} />
               <Route path="/gastos-variaveis" element={<GastosVariaveis />} />
               <Route path="/receitas" element={<Receitas />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/assistente-ia" element={<AssistenteIA />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

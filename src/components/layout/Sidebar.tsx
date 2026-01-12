@@ -1,5 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Wallet,
@@ -10,8 +11,11 @@ import {
   HelpCircle,
   X,
   Bot,
+  User,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -30,11 +34,29 @@ const mainNavItems = [
 ];
 
 const secondaryNavItems = [
+  { to: "/profile", icon: User, label: "Meu Perfil" },
   { to: "/settings", icon: Settings, label: "Configurações" },
   { to: "/help", icon: HelpCircle, label: "Ajuda" },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setUser(null);
+    navigate("/login");
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <>
       {/* Mobile overlay */}
@@ -115,18 +137,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* User Profile */}
-        <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3">
+        <div className="border-t border-sidebar-border p-4 space-y-3">
+          <div 
+            className="flex items-center gap-3 rounded-xl bg-sidebar-accent/50 p-3 cursor-pointer hover:bg-sidebar-accent transition-colors"
+            onClick={() => navigate("/profile")}
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary font-bold">
-              U
+              {user ? getInitials(user.nome) : "U"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">Usuário</p>
+              <p className="font-medium text-sm truncate">{user?.nome || "Usuário"}</p>
               <p className="text-xs text-muted-foreground truncate">
-                usuario@email.com
+                {user?.email || "usuario@email.com"}
               </p>
             </div>
           </div>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
         </div>
       </aside>
     </>
