@@ -14,3 +14,5 @@ export { default as ReceitasScreen } from './ReceitasScreen';
 export { default as FixedExpensesScreen } from './FixedExpensesScreen';
 export { default as FinancingsScreen } from './FinancingsScreen';
 export { default as AssistenteIAScreen } from './AssistenteIAScreen';
+export { default as PaymentRemindersScreen } from './PaymentRemindersScreen';
+export { default as SurpriseExpensesScreen } from './SurpriseExpensesScreen';

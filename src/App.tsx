@@ -18,6 +18,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import PaymentReminders from "./pages/PaymentReminders";
+import SurpriseExpenses from "./pages/SurpriseExpenses";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,8 @@ const App = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/assistente-ia" element={<AssistenteIA />} />
+              <Route path="/payment-reminders" element={<PaymentReminders />} />
+              <Route path="/surprise-expenses" element={<SurpriseExpenses />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
