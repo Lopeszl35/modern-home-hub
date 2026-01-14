@@ -19,6 +19,63 @@ import type {
 } from "@/types/categoria";
 import { toast } from "@/hooks/use-toast";
 
+// Mock data for visualization
+const MOCK_CATEGORIAS: Categoria[] = [
+  {
+    id_categoria: 1,
+    id_usuario: 1,
+    nome: "Alimentação",
+    limite: 800,
+    totalGastoCategoriaMes: 520,
+    percentualGastoCategoriaMes: 65,
+    ativo: true,
+  },
+  {
+    id_categoria: 2,
+    id_usuario: 1,
+    nome: "Transporte",
+    limite: 500,
+    totalGastoCategoriaMes: 420,
+    percentualGastoCategoriaMes: 84,
+    ativo: true,
+  },
+  {
+    id_categoria: 3,
+    id_usuario: 1,
+    nome: "Lazer",
+    limite: 400,
+    totalGastoCategoriaMes: 450,
+    percentualGastoCategoriaMes: 112.5,
+    ativo: true,
+  },
+  {
+    id_categoria: 4,
+    id_usuario: 1,
+    nome: "Saúde",
+    limite: 300,
+    totalGastoCategoriaMes: 180,
+    percentualGastoCategoriaMes: 60,
+    ativo: true,
+  },
+  {
+    id_categoria: 5,
+    id_usuario: 1,
+    nome: "Vestuário",
+    limite: 350,
+    totalGastoCategoriaMes: 290,
+    percentualGastoCategoriaMes: 82.8,
+    ativo: true,
+  },
+];
+
+const MOCK_CONFIG: ConfiguracaoGastoMes = {
+  id_usuario: 1,
+  limite_gasto_mes: 2500,
+  gasto_atual_mes: 1860,
+  mes: new Date().getMonth() + 1,
+  ano: new Date().getFullYear(),
+};
+
 export function useGastosVariaveis() {
   const { user } = useUser();
 
@@ -28,6 +85,7 @@ export function useGastosVariaveis() {
   const [error, setError] = useState<string | null>(null);
   const [configuracoesGastoMes, setConfiguracoesGastoMes] = useState<ConfiguracaoGastoMes | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [useMockData, setUseMockData] = useState(false);
 
   const mes = useMemo(
     () =>
@@ -123,23 +181,36 @@ export function useGastosVariaveis() {
 
   useEffect(() => {
     if (!user?.id_usuario) {
+      // Use mock data when no user is logged in
+      setUseMockData(true);
+      setCategorias(MOCK_CATEGORIAS);
+      setConfiguracoesGastoMes(MOCK_CONFIG);
       setInitialLoading(false);
-      setCategorias([]);
-      setError("Usuário não carregado. Faça login novamente.");
+      setError(null);
       return;
     }
 
+    setUseMockData(false);
     fetchCategorias();
   }, [user?.id_usuario, fetchCategorias]);
 
   const refresh = useCallback(async () => {
+    if (useMockData) {
+      setRefreshing(true);
+      setTimeout(() => {
+        setCategorias(MOCK_CATEGORIAS);
+        setConfiguracoesGastoMes(MOCK_CONFIG);
+        setRefreshing(false);
+      }, 500);
+      return;
+    }
     try {
       setRefreshing(true);
       await fetchCategorias();
     } finally {
       setRefreshing(false);
     }
-  }, [fetchCategorias]);
+  }, [fetchCategorias, useMockData]);
 
   // Actions
   const handleCriarCategoria = useCallback(async (data: CategoriaCreate) => {
