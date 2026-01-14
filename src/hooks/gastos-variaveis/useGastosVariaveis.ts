@@ -153,6 +153,7 @@ export function useGastosVariaveis() {
         const data = await getCategoriasAtivas(user.id_usuario);
         const categoriasArray = Array.isArray(data) ? data : [];
         setCategorias(categoriasArray);
+        setUseMockData(false);
 
         if (categoriasArray.length === 0) {
           setConfiguracoesGastoMes(null);
@@ -168,9 +169,12 @@ export function useGastosVariaveis() {
         
         setConfiguracoesGastoMes(limiteGastosMes);
       } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : "Erro ao buscar categorias.";
-        setError(message);
-        setCategorias([]);
+        // Use mock data as fallback when API fails
+        console.warn("API indisponível, usando dados de demonstração:", e);
+        setUseMockData(true);
+        setCategorias(MOCK_CATEGORIAS);
+        setConfiguracoesGastoMes(MOCK_CONFIG);
+        setError(null);
       } finally {
         setInitialLoading(false);
         setOverlayLoading(false);
