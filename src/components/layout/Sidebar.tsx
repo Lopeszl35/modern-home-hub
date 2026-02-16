@@ -13,6 +13,8 @@ import {
   Bot,
   User,
   LogOut,
+  BarChart3,
+  Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
@@ -29,6 +31,8 @@ const mainNavItems = [
   { to: "/gastos-variaveis", icon: TrendingUp, label: "Gastos Variáveis" },
   { to: "/fixed-expenses", icon: Target, label: "Gastos Fixos" },
   { to: "/financings", icon: TrendingUp, label: "Financiamentos" },
+  { to: "/investments", icon: BarChart3, label: "Investimentos" },
+  { to: "/market-news", icon: Newspaper, label: "Mercado" },
   { to: "/assistente-ia", icon: Bot, label: "Assistente IA" },
   { to: "/reports", icon: PieChart, label: "Relatórios" },
 ];
