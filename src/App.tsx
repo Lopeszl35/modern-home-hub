@@ -20,6 +20,8 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import PaymentReminders from "./pages/PaymentReminders";
 import SurpriseExpenses from "./pages/SurpriseExpenses";
+import Investments from "./pages/Investments";
+import MarketNews from "./pages/MarketNews";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,8 @@ const App = () => {
               <Route path="/assistente-ia" element={<AssistenteIA />} />
               <Route path="/payment-reminders" element={<PaymentReminders />} />
               <Route path="/surprise-expenses" element={<SurpriseExpenses />} />
+              <Route path="/investments" element={<Investments />} />
+              <Route path="/market-news" element={<MarketNews />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
